@@ -9,36 +9,14 @@ from libdrafter import parser
 class TestEncrypt(unittest.TestCase):
     def setUp(self):
         self.parser = parser.Parser()
-
-    def test_load(self):
-        methods = [
-            'drafter_parse_blueprint_to',
-            'drafter_parse_blueprint',
-            'drafter_serialize',
-            'drafter_free_result',
-            'drafter_check_blueprint',
-            'drafter_version',
-            'drafter_version_string'
-        ]
-
-        self.assertTrue(self.parser.libdrafter_path)
-        self.assertTrue(self.parser.libdrafter)
-        for m in methods:
-            self.assertIsNotNone(getattr(self.parser.libdrafter, m))
-
-    def test_version(self):
-        self.assertIsNotNone(self.parser.drafter_version())
-        self.assertIsNotNone(self.parser.drafter_version_string())
-
-    def test_parse(self):
-        source = b"""
+        self.source = b"""
 # My API
 ## GET /message
 + Response 200 (text/plain)
 
         Hello World!
         """
-        origin_result = {
+        self.origin_json_result = {
             "element": "parseResult",
             "content": [
                 {
@@ -134,5 +112,37 @@ class TestEncrypt(unittest.TestCase):
                 }
             ]
         }
-        result = json.loads(self.parser.drafter_parse_blueprint_to(source, sourcemap=False, drafter_format=self.parser.JSON))
-        self.assertEqual(origin_result, result)
+
+    def test_load(self):
+        methods = [
+            'drafter_parse_blueprint_to',
+            'drafter_parse_blueprint',
+            'drafter_serialize',
+            'drafter_free_result',
+            'drafter_check_blueprint',
+            'drafter_version',
+            'drafter_version_string'
+        ]
+
+        self.assertTrue(self.parser.libdrafter_path)
+        self.assertTrue(self.parser.libdrafter)
+        for m in methods:
+            self.assertIsNotNone(getattr(self.parser.libdrafter, m))
+
+    def test_version(self):
+        self.assertIsNotNone(self.parser.drafter_version())
+        self.assertIsNotNone(self.parser.drafter_version_string())
+
+    def test_drafter_parse_blueprint_to(self):
+        result = json.loads(self.parser.drafter_parse_blueprint_to(self.source, sourcemap=False, drafter_format=self.parser.JSON))
+        self.assertEqual(self.origin_json_result, result)
+
+    def test_parse_and_blueprint(self):
+        drafter_result = self.parser.drafter_parse_blueprint(self.source)
+        result = json.loads(self.parser.drafter_serialize(drafter_result, sourcemap=False, drafter_format=self.parser.JSON))
+        self.assertEqual(self.origin_json_result, result)
+        self.parser.drafter_free_result(drafter_result)
+
+    def test_drafter_check_blueprint(self):
+        drafter_result = self.parser.drafter_check_blueprint(self.source)
+        self.assertNotEqual(self.parser.NULL, drafter_result)

@@ -70,6 +70,36 @@ const char* drafter_version_string(void);
             options
         )
         if ret != 0:
-            raise ParserError("drafter parse source failed: {}.".format(ret))
-        result = self.string(out[0])
-        return result
+            raise ParserError("drafter parse blueprint failed: {}.".format(ret))
+        return self.string(out[0])
+
+    def drafter_parse_blueprint(self, source):
+        p_drafter_result = self.new('drafter_result**', self.NULL)
+        ret = self.libdrafter.drafter_parse_blueprint(
+            source,
+            p_drafter_result
+        )
+        if ret != 0:
+            raise ParserError("drafter parse blueprint failed: {}.".format(ret))
+        return p_drafter_result[0]
+
+    def drafter_serialize(self, drafter_result, sourcemap=True, drafter_format=YAML):
+        options = {'sourcemap': sourcemap, 'format': drafter_format}
+        ret = self.libdrafter.drafter_serialize(
+            drafter_result,
+            options
+        )
+        if ret == self.NULL:
+            raise ParserError("serialize drafter result failed: {}.".format(ret))
+        return self.string(ret)
+
+    def drafter_free_result(self, drafter_result):
+        self.libdrafter.drafter_free_result(drafter_result)
+
+    def drafter_check_blueprint(self, source):
+        drafter_result = self.libdrafter.drafter_check_blueprint(
+            source
+        )
+        if drafter_result == self.NULL:
+            raise ParserError("drafter check blueprint failed.")
+        return drafter_result
