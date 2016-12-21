@@ -1,2 +1,2 @@
 # libdrafter-py
-Drafter binding in Python2.7.*/3.*.
+Drafter binding for Python2.7.* and 3.*.
