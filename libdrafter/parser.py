@@ -8,6 +8,10 @@ class ParserError(Exception):
 
 
 class Parser(cffi.FFI):
+    YAML = 0
+    JSON = 1
+    ALL_FORMAT = {YAML, JSON}
+
     @staticmethod
     def find_library():
         from ctypes.util import find_library
@@ -47,3 +51,25 @@ const char* drafter_version_string(void);
 
         self.libdrafter_path = libdrafter_path or self.find_library()
         self.libdrafter = self.dlopen(self.libdrafter_path)
+
+    def drafter_version(self):
+        return self.libdrafter.drafter_version()
+
+    def drafter_version_string(self):
+        return self.string(self.libdrafter.drafter_version_string())
+
+    def drafter_parse_blueprint_to(self, source, sourcemap=True, drafter_format=YAML):
+        if drafter_format not in self.ALL_FORMAT:
+            raise ParserError("drafter must be one of {}".format(self.ALL_FORMAT))
+
+        out = self.new('char**', self.NULL)
+        options = {'sourcemap': sourcemap, 'format': drafter_format}
+        ret = self.libdrafter.drafter_parse_blueprint_to(
+            source,
+            out,
+            options
+        )
+        if ret != 0:
+            raise ParserError("drafter parse source failed: {}.".format(ret))
+        result = self.string(out[0])
+        return result
