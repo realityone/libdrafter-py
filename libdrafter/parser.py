@@ -72,6 +72,9 @@ const char* drafter_version_string(void);
         return self.string(self.drafter.drafter_version_string())
 
     def drafter_parse_blueprint_to(self, source, sourcemap=True, drafter_format=YAML):
+        """
+        Parse API Blueprint and serialize it to given format.
+        """
         if drafter_format not in self.ALL_FORMAT:
             raise ParserError("drafter must be one of {}".format(self.ALL_FORMAT))
 
@@ -95,6 +98,7 @@ const char* drafter_version_string(void);
     def drafter_parse_blueprint(self, source):
         """
         Pay attention to this method, you have to free `drafter_result` manually.
+        Parse API Blueprint and return result, which is a opaque handle for later use.
         """
         p_drafter_result = self.new('drafter_result**', self.NULL)
         ret = self.drafter.drafter_parse_blueprint(
@@ -106,6 +110,9 @@ const char* drafter_version_string(void);
         return p_drafter_result[0]
 
     def drafter_serialize(self, drafter_result, sourcemap=True, drafter_format=YAML):
+        """
+        Serialize result to given format.
+        """
         options = {'sourcemap': sourcemap, 'format': drafter_format}
         ret = self.drafter.drafter_serialize(
             drafter_result,
@@ -117,11 +124,15 @@ const char* drafter_version_string(void);
             return self.string(ret)
 
     def drafter_free_result(self, drafter_result):
+        """
+        Free memory allocated for result handler.
+        """
         self.drafter.drafter_free_result(drafter_result)
 
     def drafter_check_blueprint(self, source, serialize_result=True, **kwargs):
         """
         Pay attention to this method, you have to free `drafter_result` manually when `serialize_result` is False.
+        Parse API Blueprint and return only annotations, if NULL than document is error and warning free.
         """
         drafter_result = self.drafter.drafter_check_blueprint(
             source
