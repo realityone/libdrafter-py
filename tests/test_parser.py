@@ -165,3 +165,12 @@ Hello World!
 
         result = self.parser.drafter_check_blueprint(self.error_source, sourcemap=False, drafter_format=Parser.JSON)
         self.assertIsNotNone(json.loads(result))
+
+    def memory_leak_manual_test(self):
+        import threading
+        for i in range(50000):
+            for i in range(50):
+                threading.Thread(target=self.parser.drafter_check_blueprint, args=(self.error_source,),
+                                 kwargs={'serialize_result': True}).start()
+
+                threading.Thread(target=self.parser.drafter_parse_blueprint_to, args=(self.source,)).start()
