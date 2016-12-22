@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import contextlib
+
 import cffi
 
 
@@ -11,6 +13,15 @@ class Parser(cffi.FFI):
     YAML = 0
     JSON = 1
     ALL_FORMAT = {YAML, JSON}
+
+    @contextlib.contextmanager
+    def memory_safe(self, p, destructor=None):
+        destructor = destructor or self.free
+        try:
+            yield
+        finally:
+            if p != self.NULL:
+                destructor(p)
 
     @staticmethod
     def find_library():
@@ -25,6 +36,8 @@ class Parser(cffi.FFI):
 
         self.cdef(
             """
+void free(void *);
+
 typedef struct drafter_result drafter_result;
 
 typedef enum {
@@ -50,32 +63,41 @@ const char* drafter_version_string(void);
         )
 
         self.libdrafter_path = libdrafter_path or self.find_library()
-        self.libdrafter = self.dlopen(self.libdrafter_path)
+        self.drafter = self.dlopen(self.libdrafter_path)
 
     def drafter_version(self):
-        return self.libdrafter.drafter_version()
+        return self.drafter.drafter_version()
 
     def drafter_version_string(self):
-        return self.string(self.libdrafter.drafter_version_string())
+        return self.string(self.drafter.drafter_version_string())
 
     def drafter_parse_blueprint_to(self, source, sourcemap=True, drafter_format=YAML):
         if drafter_format not in self.ALL_FORMAT:
             raise ParserError("drafter must be one of {}".format(self.ALL_FORMAT))
 
-        out = self.new('char**', self.NULL)
+        pout = self.new('char**', self.NULL)
         options = {'sourcemap': sourcemap, 'format': drafter_format}
-        ret = self.libdrafter.drafter_parse_blueprint_to(
-            source,
-            out,
-            options
-        )
-        if ret != 0:
-            raise ParserError("drafter parse blueprint failed: {}.".format(ret))
-        return self.string(out[0])
+
+        with self.memory_safe(pout, destructor=lambda p: p[0] and self.free(p[0])):
+            ret = self.drafter.drafter_parse_blueprint_to(
+                source,
+                pout,
+                options
+            )
+            if ret != 0:
+                raise ParserError("drafter parse blueprint failed: {}.".format(ret))
+
+            return self.string(pout[0])
+
+    def free(self, p):
+        return self.drafter.free(p)
 
     def drafter_parse_blueprint(self, source):
+        """
+        Pay attention to this method, you have to free `drafter_result` manually.
+        """
         p_drafter_result = self.new('drafter_result**', self.NULL)
-        ret = self.libdrafter.drafter_parse_blueprint(
+        ret = self.drafter.drafter_parse_blueprint(
             source,
             p_drafter_result
         )
@@ -85,19 +107,23 @@ const char* drafter_version_string(void);
 
     def drafter_serialize(self, drafter_result, sourcemap=True, drafter_format=YAML):
         options = {'sourcemap': sourcemap, 'format': drafter_format}
-        ret = self.libdrafter.drafter_serialize(
+        ret = self.drafter.drafter_serialize(
             drafter_result,
             options
         )
         if ret == self.NULL:
             raise ParserError("serialize drafter result failed: {}.".format(ret))
-        return self.string(ret)
+        with self.memory_safe(ret, destructor=lambda p: self.free(p)):
+            return self.string(ret)
 
     def drafter_free_result(self, drafter_result):
-        self.libdrafter.drafter_free_result(drafter_result)
+        self.drafter.drafter_free_result(drafter_result)
 
     def drafter_check_blueprint(self, source):
-        drafter_result = self.libdrafter.drafter_check_blueprint(
+        """
+        Pay attention to this method, you have to free `drafter_result` manually.
+        """
+        drafter_result = self.drafter.drafter_check_blueprint(
             source
         )
         if drafter_result == self.NULL:
