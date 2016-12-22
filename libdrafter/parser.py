@@ -78,7 +78,7 @@ const char* drafter_version_string(void);
         pout = self.new('char**', self.NULL)
         options = {'sourcemap': sourcemap, 'format': drafter_format}
 
-        with self.memory_safe(pout, destructor=lambda p: p[0] and self.free(p[0])):
+        with self.memory_safe(pout, destructor=lambda p: p[0] != self.NULL and self.free(p[0])):
             ret = self.drafter.drafter_parse_blueprint_to(
                 source,
                 pout,
