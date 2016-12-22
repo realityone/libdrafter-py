@@ -119,13 +119,18 @@ const char* drafter_version_string(void);
     def drafter_free_result(self, drafter_result):
         self.drafter.drafter_free_result(drafter_result)
 
-    def drafter_check_blueprint(self, source):
+    def drafter_check_blueprint(self, source, serialize_result=True, **kwargs):
         """
-        Pay attention to this method, you have to free `drafter_result` manually.
+        Pay attention to this method, you have to free `drafter_result` manually when `serialize_result` is False.
         """
         drafter_result = self.drafter.drafter_check_blueprint(
             source
         )
+        if not serialize_result:
+            return drafter_result
+
         if drafter_result == self.NULL:
-            raise ParserError("drafter check blueprint failed.")
-        return drafter_result
+            return
+
+        with self.memory_safe(drafter_result, destructor=self.drafter_free_result):
+            return self.drafter_serialize(drafter_result, **kwargs)

@@ -16,6 +16,13 @@ class TestEncrypt(unittest.TestCase):
 
         Hello World!
         """
+        self.error_source = b"""
+# My API
+## GET /message
++ Response 200 (text/plain)
+
+Hello World!
+        """
         self.origin_json_result = {
             "element": "parseResult",
             "content": [
@@ -144,8 +151,17 @@ class TestEncrypt(unittest.TestCase):
         self.assertEqual(self.origin_json_result, result)
 
     def test_drafter_check_blueprint(self):
-        # Skip this, because of drafter_check_blueprint seems not matched with documentation
-        return
-        drafter_result = self.parser.drafter_check_blueprint(self.source)
+        drafter_result = self.parser.drafter_check_blueprint(self.source, serialize_result=False)
+        with self.parser.memory_safe(drafter_result, destructor=self.parser.drafter_free_result):
+            self.assertEqual(self.parser.NULL, drafter_result)
+
+        drafter_result = self.parser.drafter_check_blueprint(self.error_source, serialize_result=False)
         with self.parser.memory_safe(drafter_result, destructor=self.parser.drafter_free_result):
             self.assertNotEqual(self.parser.NULL, drafter_result)
+
+    def test_drafter_check_blueprint_with_convert(self):
+        result = self.parser.drafter_check_blueprint(self.source, sourcemap=False, drafter_format=self.parser.JSON)
+        self.assertIsNone(result)
+
+        result = self.parser.drafter_check_blueprint(self.error_source, sourcemap=False, drafter_format=self.parser.JSON)
+        self.assertIsNotNone(json.loads(result))
