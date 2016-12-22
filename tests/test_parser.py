@@ -3,12 +3,12 @@ from __future__ import unicode_literals
 import json
 import unittest
 
-from libdrafter import parser
+from libdrafter import Parser
 
 
 class TestEncrypt(unittest.TestCase):
     def setUp(self):
-        self.parser = parser.Parser()
+        self.parser = Parser()
         self.source = b"""
 # My API
 ## GET /message
