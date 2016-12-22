@@ -141,13 +141,13 @@ Hello World!
         self.assertIsNotNone(self.parser.drafter_version_string())
 
     def test_drafter_parse_blueprint_to(self):
-        result = json.loads(self.parser.drafter_parse_blueprint_to(self.source, sourcemap=False, drafter_format=self.parser.JSON))
+        result = json.loads(self.parser.drafter_parse_blueprint_to(self.source, sourcemap=False, drafter_format=Parser.JSON))
         self.assertEqual(self.origin_json_result, result)
 
     def test_parse_and_blueprint(self):
         drafter_result = self.parser.drafter_parse_blueprint(self.source)
         with self.parser.memory_safe(drafter_result, destructor=self.parser.drafter_free_result):
-            result = json.loads(self.parser.drafter_serialize(drafter_result, sourcemap=False, drafter_format=self.parser.JSON))
+            result = json.loads(self.parser.drafter_serialize(drafter_result, sourcemap=False, drafter_format=Parser.JSON))
         self.assertEqual(self.origin_json_result, result)
 
     def test_drafter_check_blueprint(self):
@@ -160,8 +160,8 @@ Hello World!
             self.assertNotEqual(self.parser.NULL, drafter_result)
 
     def test_drafter_check_blueprint_with_convert(self):
-        result = self.parser.drafter_check_blueprint(self.source, sourcemap=False, drafter_format=self.parser.JSON)
+        result = self.parser.drafter_check_blueprint(self.source, sourcemap=False, drafter_format=Parser.JSON)
         self.assertIsNone(result)
 
-        result = self.parser.drafter_check_blueprint(self.error_source, sourcemap=False, drafter_format=self.parser.JSON)
+        result = self.parser.drafter_check_blueprint(self.error_source, sourcemap=False, drafter_format=Parser.JSON)
         self.assertIsNotNone(json.loads(result))
