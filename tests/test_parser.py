@@ -6,7 +6,7 @@ import unittest
 from libdrafter import Parser
 
 
-class TestEncrypt(unittest.TestCase):
+class TestParser(unittest.TestCase):
     def setUp(self):
         self.parser = Parser()
         self.source = b"""
@@ -141,13 +141,17 @@ Hello World!
         self.assertIsNotNone(self.parser.drafter_version_string())
 
     def test_drafter_parse_blueprint_to(self):
-        result = json.loads(self.parser.drafter_parse_blueprint_to(self.source, sourcemap=False, drafter_format=Parser.JSON))
+        result = json.loads(
+            self.parser.drafter_parse_blueprint_to(self.source, sourcemap=False, drafter_format=Parser.JSON).decode('utf-8')
+        )
         self.assertEqual(self.origin_json_result, result)
 
     def test_parse_and_blueprint(self):
         drafter_result = self.parser.drafter_parse_blueprint(self.source)
         with self.parser.memory_safe(drafter_result, destructor=self.parser.drafter_free_result):
-            result = json.loads(self.parser.drafter_serialize(drafter_result, sourcemap=False, drafter_format=Parser.JSON))
+            result = json.loads(
+                self.parser.drafter_serialize(drafter_result, sourcemap=False, drafter_format=Parser.JSON).decode('utf-8')
+            )
         self.assertEqual(self.origin_json_result, result)
 
     def test_drafter_check_blueprint(self):
@@ -164,7 +168,11 @@ Hello World!
         self.assertIsNone(result)
 
         result = self.parser.drafter_check_blueprint(self.error_source, sourcemap=False, drafter_format=Parser.JSON)
-        self.assertIsNotNone(json.loads(result))
+        self.assertIsNotNone(
+            json.loads(
+                result.decode('utf-8')
+            )
+        )
 
     def memory_leak_manual_test(self):
         import threading

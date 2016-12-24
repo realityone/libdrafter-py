@@ -1,0 +1,26 @@
+language: python
+
+os:
+  - linux
+dist: trusty
+
+python:
+  - "2.7"
+  - "3.5"
+  - "3.6"
+
+sudo: required
+
+install:
+  - sudo apt-get install -y gcc make git
+  - git clone --recursive git://github.com/apiaryio/drafter.git
+  - pushd drafter &&
+    python2 ./configure --shared &&
+    make drafter &&
+    sudo cp ./build/out/Release/lib.target/libdrafter.so /usr/local/lib/libdrafter.so &&
+    sudo ldconfig &&
+    popd
+  - pip install -r requirements.txt
+  - python setup.py install
+
+script: python -m unittest discover -v
