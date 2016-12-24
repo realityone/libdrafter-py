@@ -16,5 +16,6 @@ install:
   - git clone --recursive git://github.com/apiaryio/drafter.git
   - pushd drafter && python2 ./configure && make drafter && sudo make install && popd
   - pip install -r requirements.txt
+  - python setup.py install
 
 script: python -m unittest discover -v
