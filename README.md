@@ -2,9 +2,9 @@
 
 [![Build Status](https://travis-ci.org/realityone/libdrafter-py.svg?branch=master)](https://travis-ci.org/realityone/libdrafter-py)
 
-> Drafter is complex builder of API Blueprint. Internally it uses Snowcrash library, reference API Blueprint parser.
+> [Drafter](https://github.com/apiaryio/drafter) is complex builder of API Blueprint. Internally it uses Snowcrash library, reference API Blueprint parser.
 
-Drafter binding for python.
+[Drafter](https://github.com/apiaryio/drafter) binding for python.
 
 ## Requirements
 
